@@ -1,0 +1,7 @@
+.nyc_output
+.wrangler
+.vscode
+coverage
+node_modules
+dist/*
+build/*

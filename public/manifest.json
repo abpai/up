@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "rup - r2pi",
+  "name": "Simple utility to upload static files",
   "icons": [
     {
       "src": "favicon.ico",
