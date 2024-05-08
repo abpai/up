@@ -1,0 +1,98 @@
+.dialogContainer {
+  &:before {
+    content: "";
+    display: block;
+    background: rgba(0, 0, 0, 0.6);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+  }
+}
+
+.dialog {
+  background: #fefefe;
+  border: #333333 solid 0px;
+  border-radius: 4px;
+  margin-left: -200px;
+  text-align:center;
+  position: fixed;
+  left: 50%;
+  top: 20%;
+  z-index: 11;
+  width: 100%;
+  max-width: 400px;
+  box-shadow:0 5px 10px rgba(0,0,0,0.3);
+  transform: translate(0, 0);
+  transition: transform 0.3s ease-out;
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 32px;
+}
+
+.dialogTitle {
+  font-size: 20px;
+}
+
+.dialogBody {
+  padding: 8px 40px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.input {
+  font-size: 16px;
+  padding: 8px 16px;
+  width: 100%;
+  margin: 0 32px;
+  border: 1px solid #888;
+  border-radius: 3px;
+}
+
+.button {
+  background: none;
+  border: none;
+  color: #333;
+  display: inline-block;
+  font-size: 16px;
+  padding: 8px 16px;
+  text-decoration: none;
+  text-align: center;
+  min-width: 60px;
+  position: relative;
+  transition: color .1s ease;
+  cursor: pointer;
+
+  &:hover {
+    color: #555;
+  }
+}
+
+.closeButton {
+  color: #333;
+  font-size: 20px;
+  text-decoration: none;
+  padding: 0;
+  text-align: right;
+
+  &:hover {
+    color: #111;
+  }
+}
+
+.submitButton {
+  margin: 32px auto;
+  border: 1px solid #d3d3d3;
+  border-radius: 4px;
+}

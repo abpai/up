@@ -2,11 +2,15 @@ import React, { useCallback, useState, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import axios from 'axios'
 
+import RenameDialog from './RenameDialog'
+
 import s from './App.module.css'
 
 function App() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadSuccess, setUploadSuccess] = useState(false)
+  const [pastedFile, setPastedFile] = useState(null)
+  const [showRenameDialog, setShowRenameDialog] = useState(false)
 
   const upload = async (file) => {
     const formData = new FormData()
@@ -26,7 +30,7 @@ function App() {
       const { fileUrl } = response.data
       const { pathname } = new URL(fileUrl)
       if (response.status === 200)
-        setUploadSuccess(`https://static.r2pi.co${pathname}`)
+        setUploadSuccess(`https://static.andypai.me${pathname}`)
     } catch (error) {
       console.error('Error uploading file:', error)
     }
@@ -40,13 +44,24 @@ function App() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
 
   const onPaste = async (e) => {
-    // Prevent the default behavior, so you can code your own logic.
     e.preventDefault()
-    if (!e.clipboardData.files.length) {
-      return
-    }
+    if (!e.clipboardData.files.length) return
 
-    upload(e.clipboardData.files[0])
+    setPastedFile(e.clipboardData.files[0])
+    setShowRenameDialog(true)
+  }
+
+  const onCopy = async () => {
+    navigator.clipboard.writeText(uploadSuccess)
+  }
+
+  const handleRename = (newName) => {
+    const renamedFile = new File([pastedFile], newName, {
+      type: pastedFile.type,
+    })
+    upload(renamedFile)
+    setPastedFile(null)
+    setShowRenameDialog(false)
   }
 
   useEffect(() => {
@@ -90,12 +105,31 @@ function App() {
         <div>
           <div className={s.success}>Success! You can view it here:</div>
           <div>
-            <a className={s.link} href={uploadSuccess}>
+            <a
+              className={s.link}
+              target="_blank"
+              href={uploadSuccess}
+              rel="noreferrer"
+            >
               {uploadSuccess}
             </a>
+            <button className={s.copyButton} type="button" onClick={onCopy}>
+              📋
+            </button>
           </div>
+          <a href="/" className={s.refresh}>
+            Upload another file →
+          </a>
         </div>
       ) : null}
+
+      {showRenameDialog && (
+        <RenameDialog
+          file={pastedFile}
+          onRename={handleRename}
+          onCancel={() => setShowRenameDialog(false)}
+        />
+      )}
     </div>
   )
 }

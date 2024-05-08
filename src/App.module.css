@@ -4,8 +4,8 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #1c1c1c;
-  color: #fff;
+  background-color: #ebebeb;
+  color: #333;
 }
 
 .dropzone {
@@ -40,12 +40,34 @@
 }
 
 .link {
-  color: #50B2C0;
   padding: 8px;
-  border: 1px solid #50B2C0;
+  border: 1px solid #4062bb;
+  color: #4062bb;
   border-radius: 5px;
-  background-color: #1c1c1c;
   text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.copyButton {
+  padding: 8px;
+  border: 1px solid #4062bb;
+  color: #4062bb;
+  border-radius: 5px;
+  min-height: 37px;
+  margin-left: 8px;
+}
+
+.refresh {
+  display: block;
+  margin-top: 16px;
+  font-size: 14px;
+  padding: 8px;
+  color: #f45b69;
+  text-decoration: none;
+  font-weight: bold;
 
   &:hover {
     text-decoration: underline;

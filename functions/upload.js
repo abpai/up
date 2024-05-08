@@ -1,4 +1,8 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3'
 
 // https://developers.cloudflare.com/workers/runtime-apis/request/
 
@@ -43,8 +47,8 @@ export async function onRequest({ request, env }) {
     },
   })
 
-  const fileName = `${FOLDER_KEY}/${file.name}`
-  const params = {
+  const fileName = FOLDER_KEY ? `${FOLDER_KEY}/${file.name}` : file.name
+  const putParams = {
     Bucket: BUCKET_NAME,
     Key: fileName,
     Body: await file.arrayBuffer(),
@@ -53,7 +57,7 @@ export async function onRequest({ request, env }) {
   }
 
   try {
-    await s3Client.send(new PutObjectCommand(params))
+    await s3Client.send(new PutObjectCommand(putParams))
 
     const fileUrl = `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${fileName}`
 
