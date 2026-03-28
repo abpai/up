@@ -16,7 +16,7 @@ Anonymous file sharing on Cloudflare Workers with a React frontend, an upload AP
 Browser and collection uploads use:
 
 ```bash
-curl -X POST https://up.andypai.me/api/upload \
+curl -X POST https://up.andyp.ai/api/upload \
   -H 'Authorization: Bearer up_your_token' \
   -F 'file=@./first.png' \
   -F 'file=@./second.pdf'
@@ -27,7 +27,7 @@ curl -X POST https://up.andypai.me/api/upload \
 CLI and scripts can use:
 
 ```bash
-curl -X PUT https://up.andypai.me/api/upload \
+curl -X PUT https://up.andyp.ai/api/upload \
   -H 'Authorization: Bearer up_your_token' \
   -H 'Content-Type: application/pdf' \
   -H 'X-Up-Filename: file.pdf' \
@@ -44,15 +44,15 @@ Both upload modes return:
   "title": "file.pdf",
   "createdAt": 1710000000000,
   "count": 1,
-  "shareUrl": "https://up.andypai.me/c/collection-id",
-  "fileUrl": "https://up.andypai.me/api/file/file-id",
+  "shareUrl": "https://up.andyp.ai/c/collection-id",
+  "fileUrl": "https://up.andyp.ai/api/file/file-id",
   "files": [
     {
       "id": "file-id",
       "name": "file.pdf",
       "type": "application/pdf",
       "size": 12345,
-      "url": "https://up.andypai.me/api/file/file-id"
+      "url": "https://up.andyp.ai/api/file/file-id"
     }
   ]
 }
@@ -76,8 +76,8 @@ Persistent defaults live in `~/.up/config.toml`.
 Example:
 
 ```toml
-api_url = "https://up.andypai.me"
-app_url = "https://up.andypai.me"
+api_url = "https://up.andyp.ai"
+app_url = "https://up.andyp.ai"
 open_browser = true
 default_mode = "single"
 api_token = "up_your_token"

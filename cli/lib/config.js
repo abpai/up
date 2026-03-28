@@ -3,7 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { parse, stringify } from '@iarna/toml'
 
-export const DEFAULT_BASE_URL = 'https://up.andypai.me'
+export const DEFAULT_BASE_URL = 'https://up.andyp.ai'
 
 export const DEFAULT_CONFIG = {
   apiUrl: DEFAULT_BASE_URL,
