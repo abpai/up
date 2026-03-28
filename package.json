@@ -1,62 +1,63 @@
 {
   "name": "up",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
+  "workspaces": [
+    "cli"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.556.0",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.6.8",
-    "classnames": "^2.5.1",
+    "axios": "^1.13.6",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.38.0",
+    "itty-router": "^5.0.23",
+    "lucide-react": "^1.7.0",
     "prop-types": "^15.8.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-dropzone": "^14.2.3",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-dropzone": "^15.0.0",
+    "react-router-dom": "^7.13.2"
   },
   "scripts": {
-    "functions": "wrangler pages dev ./build --port 8080",
-    "pages": "react-scripts start",
-    "start": "concurrently \"npm:functions\" \"npm:pages\"",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "deploy": "npm run build && wrangler pages deploy ./build",
-    "preview": "npm run build && wrangler pages dev ./build",
+    "dev": "concurrently \"npm:dev:worker\" \"npm:dev:app\"",
+    "dev:app": "vite",
+    "dev:worker": "wrangler dev --port 8787",
+    "build": "vite build",
+    "build:cli": "npm run build --workspace cli",
+    "build:all": "npm run build && npm run build:cli",
+    "deploy": "npm run build && wrangler deploy",
+    "preview": "vite preview",
+    "preview:worker": "npm run build && wrangler dev",
+    "test": "npm run test:app && npm run test:cli",
+    "test:app": "vitest run",
+    "test:cli": "npm test --workspace cli",
     "lint": "eslint .",
-    "fix": "npm:lint -- --fix"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "fix": "npm run lint -- --fix"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "concurrently": "^8.2.2",
-    "eslint": "^8.46.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitejs/plugin-react": "^6.0.1",
+    "autoprefixer": "^10.4.27",
+    "concurrently": "^9.2.1",
+    "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-prettier": "^8.9.0",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-flowtype": "^8.0.3",
-    "eslint-plugin-import": "^2.28.0",
-    "eslint-plugin-prettier": "^5.0.0",
-    "eslint-plugin-react": "^7.34.1",
-    "prettier": "^3.0.0",
-    "wrangler": "^3.51.2"
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-react": "^7.37.5",
+    "jsdom": "^29.0.1",
+    "node-addon-api": "^8.7.0",
+    "node-gyp": "^12.2.0",
+    "postcss": "^8.5.8",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^3.4.19",
+    "vite": "^8.0.3",
+    "vitest": "^4.1.2",
+    "wrangler": "^4.77.0"
   }
 }

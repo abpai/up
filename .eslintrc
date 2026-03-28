@@ -36,10 +36,14 @@
       {
         "devDependencies": [
           "scripts/**",
-          "**/*.test.js"
+          "**/*.test.js",
+          "**/*.test.jsx",
+          "src/test/**/*.js",
+          "cli/**/*.js"
         ]
       }
     ],
+    "import/extensions": "off",
     "no-console": [
       "error",
       {
@@ -55,7 +59,13 @@
       "ForInStatement",
       "LabeledStatement",
       "WithStatement"
-    ]
+    ],
+    "import/prefer-default-export": "off"
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
   },
   "env": {
     "browser": true,

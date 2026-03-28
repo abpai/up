@@ -1,70 +1,146 @@
-# Getting Started with Create React App
+# Up
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Anonymous file sharing on Cloudflare Workers with a React frontend, an upload API, and a publishable `up` CLI.
 
-## Available Scripts
+## What It Does
 
-In the project directory, you can run:
+- Upload one or more files and get back a public secret link.
+- View a shared collection at `/c/:id`.
+- Retrieve raw files through `/api/file/:id`.
+- Upload programmatically through HTTP or the `up` CLI.
 
-### `npm start`
+## Upload API
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Multipart upload
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Browser and collection uploads use:
 
-### `npm test`
+```bash
+curl -X POST https://up.andypai.me/api/upload \
+  -H 'Authorization: Bearer up_your_token' \
+  -F 'file=@./first.png' \
+  -F 'file=@./second.pdf'
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Raw upload
 
-### `npm run build`
+CLI and scripts can use:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+curl -X PUT https://up.andypai.me/api/upload \
+  -H 'Authorization: Bearer up_your_token' \
+  -H 'Content-Type: application/pdf' \
+  -H 'X-Up-Filename: file.pdf' \
+  --data-binary @./file.pdf
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Response shape
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Both upload modes return:
 
-### `npm run eject`
+```json
+{
+  "id": "collection-id",
+  "title": "file.pdf",
+  "createdAt": 1710000000000,
+  "count": 1,
+  "shareUrl": "https://up.andypai.me/c/collection-id",
+  "fileUrl": "https://up.andypai.me/api/file/file-id",
+  "files": [
+    {
+      "id": "file-id",
+      "name": "file.pdf",
+      "type": "application/pdf",
+      "size": 12345,
+      "url": "https://up.andypai.me/api/file/file-id"
+    }
+  ]
+}
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+`fileUrl` is present only when the collection contains exactly one file.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## CLI
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+The CLI package lives in [`cli/`](./cli).
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+up ./file.pdf
+up --collection ./a.png ./b.png
+up --json ./file.pdf
+up setup
+```
 
-## Learn More
+Persistent defaults live in `~/.up/config.toml`.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Example:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```toml
+api_url = "https://up.andypai.me"
+app_url = "https://up.andypai.me"
+open_browser = true
+default_mode = "single"
+api_token = "up_your_token"
+```
 
-### Code Splitting
+Token precedence is:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+1. `UP_TOKEN`
+2. `~/.up/config.toml`
 
-### Analyzing the Bundle Size
+`up setup` can save a token from the dashboard for local use. For CI or shared environments, prefer `UP_TOKEN` instead of writing secrets to disk.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Local Development
 
-### Making a Progressive Web App
+```bash
+nvm use
+npm install
+npm run dev
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+That starts:
 
-### Advanced Configuration
+- Vite on `http://localhost:5173`
+- Wrangler on `http://localhost:8787`
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Required Cloudflare Bindings
 
-### Deployment
+`wrangler.toml` expects:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+- an R2 bucket bound as `BUCKET`
+- a D1 database bound as `DB`
+- static assets served from `./dist` through the `ASSETS` binding
 
-### `npm run build` fails to minify
+Update these placeholders before deployment:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- `[[r2_buckets]].bucket_name`
+- `[[d1_databases]].database_id`
+
+Apply the D1 schema from [`schema.sql`](./schema.sql).
+
+## Scripts
+
+```bash
+npm run dev
+npm run build
+npm run test
+npm run lint
+npm run deploy
+```
+
+## Runtime
+
+- Node 20.x for local install and verification
+- Cloudflare Workers for API + static asset delivery
+
+## Auth
+
+- Web app auth uses server-side sessions stored in `HttpOnly` cookies.
+- CLI and scripted uploads use bearer tokens created from the dashboard.
+- Uploads and dashboard access are protected; public collection/file links remain shareable by secret URL.
+
+## Current Product Boundary
+
+- In-app previews are intentionally lightweight.
+- Images render directly in the collection view.
+- Other file types rely on the browser opening the raw file URL.
