@@ -16,6 +16,7 @@ import {
 } from './handlers/auth'
 import { withAuth } from './middleware/withAuth'
 import { withTrustedOrigin } from './middleware/withTrustedOrigin'
+import { ensureSchema } from './services/schema'
 import { corsHeaders } from './utils/cors'
 
 const router = Router()
@@ -68,6 +69,7 @@ router.all('*', handleStatic)
 
 export default {
   async fetch(request, env, ctx) {
+    await ensureSchema(env)
     return router.fetch(request, env, ctx)
   },
 }
