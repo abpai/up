@@ -6,7 +6,8 @@
 | ---- | ------ | --------------- | ------------------ |
 | 2026-03-27 | user | Planned the CLI config generically at first | Mirror Orb's pattern: persistent TOML config in `~/.up/config.toml` plus an interactive `up setup` command |
 | 2026-03-27 | self | Assumed a newer `@clack/prompts` version existed without checking the registry | Verify package versions with `npm view <pkg> version` before locking new CLI dependencies |
-| 2026-03-27 | self | Tried installing the workspace under Node 25 and hit Wrangler/miniflare `sharp` build failures | Use Node 20 for install and verification in this repo; the declared engine is not enough if the shell default is newer |
+| 2026-03-27 | self | Tried installing the workspace under Node 25 and hit Wrangler/miniflare `sharp` build failures | Treat Node 25 as unverified for this repo; the declared engine is not enough if the shell default is newer |
+| 2026-03-28 | user | Confirmed the local shell is on Node `v24.14.0` and it works for current repo tasks | Prefer Node `v24.14.0` or other verified Node 24.x builds for day-to-day work here; keep Node 20 as a conservative fallback if Wrangler tooling regresses |
 | 2026-03-27 | self | Started adding CLI token auth through flags | Keep secrets out of flags; prefer `UP_TOKEN` or a TTY-driven `up setup` flow and redact tokens from config output |
 | 2026-03-27 | self | Added bearer-token auth in the Worker but forgot CORS preflight headers | When adding auth headers, update `Access-Control-Allow-Headers` and allowed methods at the same time |
 | 2026-03-27 | self | It is easy to rename the public domain in docs or CLI defaults but miss the Worker `CORS` var and social metadata | When changing the site domain, update `wrangler.toml`, HTML meta URLs/domains, CLI defaults, and README examples together |
@@ -32,4 +33,6 @@
 
 - `Up` is a Cloudflare Worker plus React frontend for anonymous secret-link file sharing.
 - The next major value wedge is a stable upload API and installable CLI.
-- Local verification should use Node 20 until Wrangler's dependency chain is clean on Node 25.
+- Node `v24.14.0` is currently working in this repo.
+- Node 25 is still unverified because Wrangler/miniflare dependencies previously failed there.
+- Node 20 remains the conservative fallback if newer Node versions start breaking installs again.
