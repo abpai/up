@@ -15,6 +15,7 @@
 | 2026-03-27 | self | Migrated the app to Vite + Wrangler without wiring local `/api` requests back to the worker | After splitting app and worker dev servers, add a Vite proxy or explicit client API base URL before calling the local flow done |
 | 2026-03-27 | self | Added a root `build:cli` workflow without giving the CLI workspace a `build` script | When introducing workspace-wide build commands, verify each child workspace implements the referenced lifecycle script |
 | 2026-03-27 | self | Cached D1 schema initialization in a single module-level promise | Cache schema bootstrap per `env.DB` binding (for example with a `WeakMap`) so tests and multi-env runtimes do not accidentally skip initialization |
+| 2026-03-29 | self | Started using pnpm in a repo that still relied on npm workspace metadata and `npm:` script shorthands | When migrating this repo to pnpm, add `pnpm-workspace.yaml`, switch root scripts to explicit `pnpm` commands, and regenerate the lockfile instead of keeping `package-lock.json` |
 
 ## User Preferences
 
@@ -36,3 +37,4 @@
 - Node `v24.14.0` is currently working in this repo.
 - Node 25 is still unverified because Wrangler/miniflare dependencies previously failed there.
 - Node 20 remains the conservative fallback if newer Node versions start breaking installs again.
+- This repo now uses pnpm workspaces rather than npm workspaces.

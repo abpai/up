@@ -6,24 +6,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Development (runs both React app and Cloudflare Worker concurrently)
-npm run dev
+pnpm dev
 
 # Individual dev servers
-npm run dev:app     # React app on :3000
-npm run dev:worker  # Wrangler worker on :8787
+pnpm dev:app        # React app on :3000
+pnpm dev:worker     # Wrangler worker on :8787
 
 # Build & Deploy
-npm run build       # Build React app
-npm run deploy      # Build + deploy to Cloudflare
+pnpm build          # Build React app
+pnpm deploy         # Build + deploy to Cloudflare
 
 # Testing
-npm test            # Run app tests (Vitest) and CLI tests (node --test)
-npm run test:app    # Run Vitest for the app/worker
-npm run test:cli    # Run node --test for the CLI workspace
+pnpm test           # Run app tests (Vitest) and CLI tests (node --test)
+pnpm test:app       # Run Vitest for the app/worker
+pnpm test:cli       # Run node --test for the CLI workspace
 
 # Linting
-npm run lint        # ESLint
-npm run fix         # ESLint with auto-fix
+pnpm lint           # ESLint
+pnpm fix            # ESLint with auto-fix
 ```
 
 ## Architecture

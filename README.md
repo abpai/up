@@ -94,8 +94,8 @@ Token precedence is:
 
 ```bash
 nvm use
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 That starts:
@@ -115,7 +115,7 @@ This app deploys as a single Cloudflare Worker that serves both the API and the 
 
 ```bash
 nvm use 24
-npm install
+pnpm install
 npx wrangler login
 ```
 
@@ -146,11 +146,11 @@ Update [`wrangler.toml`](./wrangler.toml) before the first production deploy:
 - `[[d1_databases]].database_id`
 - `[vars].CORS`
 
-`CORS` should be the production app origin that is allowed to make authenticated browser requests. For this project, that usually means your final site URL, for example:
+`CORS` should list the production app origin or origins that are allowed to make authenticated browser requests. Use a comma-separated list if you need to support more than one hostname, for example:
 
 ```toml
 [vars]
-CORS = "https://up.example.com"
+CORS = "https://up.example.com,https://up-legacy.example.com"
 ```
 
 If you change the public domain, also update any hard-coded README examples and CLI defaults that still point at `https://up.andyp.ai`.
@@ -170,9 +170,9 @@ If you renamed the database, replace `up-db` with your actual D1 database name.
 Before deploying, run the same checks you would want in CI:
 
 ```bash
-npm run build
-npm test
-npm run lint
+pnpm build
+pnpm test
+pnpm lint
 ```
 
 ### 6. Deploy
@@ -180,7 +180,7 @@ npm run lint
 Deploy the Worker and static assets:
 
 ```bash
-npm run deploy
+pnpm deploy
 ```
 
 That runs `vite build` and then `wrangler deploy`.
@@ -199,7 +199,7 @@ curl https://your-domain.example/api/auth/me
 Expected response:
 
 ```json
-{"user":null}
+{ "user": null }
 ```
 
 3. Create an account in the web UI, generate an API token from the dashboard, and test an authenticated upload:
@@ -242,11 +242,11 @@ Apply the D1 schema from [`schema.sql`](./schema.sql).
 ## Scripts
 
 ```bash
-npm run dev
-npm run build
-npm run test
-npm run lint
-npm run deploy
+pnpm dev
+pnpm build
+pnpm test
+pnpm lint
+pnpm deploy
 ```
 
 ## Runtime
