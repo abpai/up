@@ -10,12 +10,12 @@ not_found_handling = "single-page-application"
 # Bindings for R2 and D1
 [[r2_buckets]]
 binding = "BUCKET"
-bucket_name = "up-storage" # Placeholder name, user must create/update this
+bucket_name = "up-storage"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "up-db" # Placeholder name, user must create/update this
-database_id = "replace-with-your-db-id"
+database_name = "up-db"
+database_id = "4809a89a-25b0-4dac-b1f0-aacd97d6d02c"
 
 [vars]
-CORS = "https://up.andyp.ai"
+CORS = "https://up.andyp.ai,https://up.andypai.me"
