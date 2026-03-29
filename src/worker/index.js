@@ -61,7 +61,7 @@ router.get('/c/:id', handleRender)
 // Options (CORS)
 router.options(
   '*',
-  (request, env) => new Response(null, { headers: corsHeaders(env) }),
+  (request, env) => new Response(null, { headers: corsHeaders(env, request) }),
 )
 
 // Static Assets & Fallback

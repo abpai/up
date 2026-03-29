@@ -30,9 +30,14 @@ export const handleGetDashboard = async (request, env) => {
         : null,
     }))
 
-    return jsonResponse({ collections }, env)
+    return jsonResponse({ collections }, env, request)
   } catch (error) {
     console.error('Dashboard error:', error)
-    return jsonResponse({ error: 'Failed to load dashboard' }, env, 500)
+    return jsonResponse(
+      { error: 'Failed to load dashboard' },
+      env,
+      request,
+      500,
+    )
   }
 }

@@ -11,7 +11,7 @@ export const withAuth = (handler) => async (request, env, ctx) => {
   if (bearerToken) {
     const user = await validateApiToken(env, bearerToken)
     if (!user) {
-      return jsonResponse({ error: 'Unauthorized' }, env, 401)
+      return jsonResponse({ error: 'Unauthorized' }, env, request, 401)
     }
 
     request.user = user
@@ -21,12 +21,12 @@ export const withAuth = (handler) => async (request, env, ctx) => {
 
   const token = getSessionToken(request)
   if (!token) {
-    return jsonResponse({ error: 'Unauthorized' }, env, 401)
+    return jsonResponse({ error: 'Unauthorized' }, env, request, 401)
   }
 
   const user = await validateSession(env, token)
   if (!user) {
-    return jsonResponse({ error: 'Unauthorized' }, env, 401, {
+    return jsonResponse({ error: 'Unauthorized' }, env, request, 401, {
       'Set-Cookie': clearSessionCookie(),
     })
   }

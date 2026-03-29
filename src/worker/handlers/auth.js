@@ -23,12 +23,13 @@ export const handleSignup = async (request, env, ctx) => {
     const { email, password } = await request.json()
 
     if (!email || !EMAIL_RE.test(email)) {
-      return jsonResponse({ error: 'Invalid email' }, env, 400)
+      return jsonResponse({ error: 'Invalid email' }, env, request, 400)
     }
     if (!password || password.length < 8) {
       return jsonResponse(
         { error: 'Password must be at least 8 characters' },
         env,
+        request,
         400,
       )
     }
@@ -40,7 +41,12 @@ export const handleSignup = async (request, env, ctx) => {
       .first()
 
     if (existing) {
-      return jsonResponse({ error: 'Email already registered' }, env, 409)
+      return jsonResponse(
+        { error: 'Email already registered' },
+        env,
+        request,
+        409,
+      )
     }
 
     const userId = crypto.randomUUID()
@@ -58,12 +64,13 @@ export const handleSignup = async (request, env, ctx) => {
     return jsonResponse(
       { user: { id: userId, email: email.toLowerCase() } },
       env,
+      request,
       201,
       { 'Set-Cookie': setSessionCookie(session.token, session.maxAge) },
     )
   } catch (error) {
     console.error('Signup error:', error)
-    return jsonResponse({ error: 'Signup failed' }, env, 500)
+    return jsonResponse({ error: 'Signup failed' }, env, request, 500)
   }
 }
 
@@ -72,7 +79,12 @@ export const handleLogin = async (request, env, ctx) => {
     const { email, password } = await request.json()
 
     if (!email || !password) {
-      return jsonResponse({ error: 'Email and password required' }, env, 400)
+      return jsonResponse(
+        { error: 'Email and password required' },
+        env,
+        request,
+        400,
+      )
     }
 
     const db = getDB(env)
@@ -82,12 +94,22 @@ export const handleLogin = async (request, env, ctx) => {
       .first()
 
     if (!user) {
-      return jsonResponse({ error: 'Invalid email or password' }, env, 401)
+      return jsonResponse(
+        { error: 'Invalid email or password' },
+        env,
+        request,
+        401,
+      )
     }
 
     const valid = await verifyPassword(password, user.password_hash, user.salt)
     if (!valid) {
-      return jsonResponse({ error: 'Invalid email or password' }, env, 401)
+      return jsonResponse(
+        { error: 'Invalid email or password' },
+        env,
+        request,
+        401,
+      )
     }
 
     const session = await createSession(env, user.id, ctx)
@@ -95,12 +117,13 @@ export const handleLogin = async (request, env, ctx) => {
     return jsonResponse(
       { user: { id: user.id, email: user.email } },
       env,
+      request,
       200,
       { 'Set-Cookie': setSessionCookie(session.token, session.maxAge) },
     )
   } catch (error) {
     console.error('Login error:', error)
-    return jsonResponse({ error: 'Login failed' }, env, 500)
+    return jsonResponse({ error: 'Login failed' }, env, request, 500)
   }
 }
 
@@ -109,7 +132,7 @@ export const handleLogout = async (request, env) => {
   if (token) {
     await deleteSession(env, token)
   }
-  return jsonResponse({ ok: true }, env, 200, {
+  return jsonResponse({ ok: true }, env, request, 200, {
     'Set-Cookie': clearSessionCookie(),
   })
 }
@@ -117,17 +140,21 @@ export const handleLogout = async (request, env) => {
 export const handleMe = async (request, env) => {
   const token = getSessionToken(request)
   if (!token) {
-    return jsonResponse({ user: null }, env)
+    return jsonResponse({ user: null }, env, request)
   }
 
   const user = await validateSession(env, token)
   if (!user) {
-    return jsonResponse({ user: null }, env, 200, {
+    return jsonResponse({ user: null }, env, request, 200, {
       'Set-Cookie': clearSessionCookie(),
     })
   }
 
-  return jsonResponse({ user: { id: user.id, email: user.email } }, env)
+  return jsonResponse(
+    { user: { id: user.id, email: user.email } },
+    env,
+    request,
+  )
 }
 
 export const handleListTokens = async (request, env) => {
@@ -144,10 +171,16 @@ export const handleListTokens = async (request, env) => {
         })),
       },
       env,
+      request,
     )
   } catch (error) {
     console.error('Token list error:', error)
-    return jsonResponse({ error: 'Failed to load API tokens' }, env, 500)
+    return jsonResponse(
+      { error: 'Failed to load API tokens' },
+      env,
+      request,
+      500,
+    )
   }
 }
 
@@ -173,11 +206,17 @@ export const handleCreateToken = async (request, env) => {
         plaintextToken: token.token,
       },
       env,
+      request,
       201,
     )
   } catch (error) {
     console.error('Token create error:', error)
-    return jsonResponse({ error: 'Failed to create API token' }, env, 500)
+    return jsonResponse(
+      { error: 'Failed to create API token' },
+      env,
+      request,
+      500,
+    )
   }
 }
 
@@ -189,12 +228,17 @@ export const handleRevokeToken = async (request, env) => {
       request.params.id,
     )
     if (!revoked) {
-      return jsonResponse({ error: 'Token not found' }, env, 404)
+      return jsonResponse({ error: 'Token not found' }, env, request, 404)
     }
 
-    return jsonResponse({ ok: true }, env)
+    return jsonResponse({ ok: true }, env, request)
   } catch (error) {
     console.error('Token revoke error:', error)
-    return jsonResponse({ error: 'Failed to revoke API token' }, env, 500)
+    return jsonResponse(
+      { error: 'Failed to revoke API token' },
+      env,
+      request,
+      500,
+    )
   }
 }

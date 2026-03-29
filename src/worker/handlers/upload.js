@@ -121,7 +121,7 @@ async function handleMultipartUpload(request, env) {
     .filter((value) => value && typeof value.arrayBuffer === 'function')
 
   const validation = validateFiles(files)
-  if (validation) return jsonResponse(validation, env, 400)
+  if (validation) return jsonResponse(validation, env, request, 400)
 
   const manifest = await persistUpload(
     request,
@@ -129,13 +129,18 @@ async function handleMultipartUpload(request, env) {
     files,
     formData.get('title'),
   )
-  return jsonResponse(manifest, env)
+  return jsonResponse(manifest, env, request)
 }
 
 async function handleRawUpload(request, env) {
   const filename = request.headers.get('x-up-filename')?.trim()
   if (!filename) {
-    return jsonResponse({ error: 'Missing X-Up-Filename header' }, env, 400)
+    return jsonResponse(
+      { error: 'Missing X-Up-Filename header' },
+      env,
+      request,
+      400,
+    )
   }
 
   const body = await request.arrayBuffer()
@@ -147,7 +152,7 @@ async function handleRawUpload(request, env) {
   }
 
   const validation = validateFiles([file])
-  if (validation) return jsonResponse(validation, env, 400)
+  if (validation) return jsonResponse(validation, env, request, 400)
 
   const manifest = await persistUpload(
     request,
@@ -155,7 +160,7 @@ async function handleRawUpload(request, env) {
     [file],
     request.headers.get('x-up-title'),
   )
-  return jsonResponse(manifest, env)
+  return jsonResponse(manifest, env, request)
 }
 
 export const handleUpload = async (request, env) => {
@@ -173,6 +178,7 @@ export const handleUpload = async (request, env) => {
           error instanceof Error ? error.message : 'Unexpected upload failure',
       },
       env,
+      request,
       500,
     )
   }

@@ -45,6 +45,9 @@ export const withTrustedOrigin =
 
     return new Response(JSON.stringify({ error: 'Forbidden origin' }), {
       status: 403,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders(env) },
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders(env, request),
+      },
     })
   }
