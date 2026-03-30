@@ -1,6 +1,6 @@
 {
   "name": "@andypai/up",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Upload local files to Up and get back public share links",
   "type": "module",
   "bin": {
