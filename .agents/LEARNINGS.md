@@ -16,6 +16,7 @@
 | 2026-03-27 | self | Added a root `build:cli` workflow without giving the CLI workspace a `build` script | When introducing workspace-wide build commands, verify each child workspace implements the referenced lifecycle script |
 | 2026-03-27 | self | Cached D1 schema initialization in a single module-level promise | Cache schema bootstrap per `env.DB` binding (for example with a `WeakMap`) so tests and multi-env runtimes do not accidentally skip initialization |
 | 2026-03-29 | self | Started using pnpm in a repo that still relied on npm workspace metadata and `npm:` script shorthands | When migrating this repo to pnpm, add `pnpm-workspace.yaml`, switch root scripts to explicit `pnpm` commands, and regenerate the lockfile instead of keeping `package-lock.json` |
+| 2026-03-29 | self | Running a newer local `pnpm` during validation bumped the root `packageManager` field unexpectedly | If the repo pins a specific `packageManager` version, restore that field unless you are intentionally upgrading tooling |
 
 ## User Preferences
 
