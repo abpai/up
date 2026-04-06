@@ -1,6 +1,12 @@
 import { getDB } from '../services/db'
 import { corsHeaders } from '../utils/cors'
 
+function toAttachment(filename) {
+  const fallback = (filename || 'download').replace(/["\\\r\n]/g, '_')
+  const encoded = encodeURIComponent(filename || fallback)
+  return `attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`
+}
+
 export const handleGetFile = async (request, env) => {
   const { id } = request.params
   const db = getDB(env)
@@ -34,7 +40,8 @@ export const handleGetFile = async (request, env) => {
     headers.set('etag', object.httpEtag)
 
     // Force download with correct filename
-    headers.set('Content-Disposition', `inline; filename="${fileRecord.name}"`)
+    headers.set('Content-Disposition', toAttachment(fileRecord.name))
+    headers.set('X-Content-Type-Options', 'nosniff')
 
     // CORS
     const cors = corsHeaders(env)
