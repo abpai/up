@@ -45,6 +45,11 @@ describe('handleUpload', () => {
     expect(body.files).toHaveLength(1)
     expect(body.files[0].name).toBe('hello.txt')
     expect(env.BUCKET.put).toHaveBeenCalledTimes(1)
+    expect(env.BUCKET.put.mock.calls[0][2]).toEqual({
+      httpMetadata: {
+        contentType: 'application/octet-stream',
+      },
+    })
   })
 
   it('accepts multipart uploads and omits fileUrl for collections', async () => {

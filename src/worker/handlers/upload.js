@@ -2,6 +2,7 @@ import { getDB } from '../services/db'
 import { jsonResponse } from '../utils/response'
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024
+const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
 
 function getCollectionTitle(files, titleOverride) {
   if (typeof titleOverride === 'string' && titleOverride.trim()) {
@@ -68,14 +69,14 @@ async function persistUpload(request, env, inputFiles, titleOverride) {
 
       await env.BUCKET.put(key, await file.arrayBuffer(), {
         httpMetadata: {
-          contentType: file.type || 'application/octet-stream',
+          contentType: DEFAULT_CONTENT_TYPE,
         },
       })
 
       return {
         id: fileId,
         name: file.name,
-        type: file.type || 'application/octet-stream',
+        type: file.type || DEFAULT_CONTENT_TYPE,
         size: file.size,
         key,
         uploaded_at: uploadedAt,
@@ -146,7 +147,7 @@ async function handleRawUpload(request, env) {
   const body = await request.arrayBuffer()
   const file = {
     name: filename,
-    type: request.headers.get('content-type') || 'application/octet-stream',
+    type: request.headers.get('content-type') || DEFAULT_CONTENT_TYPE,
     size: body.byteLength,
     arrayBuffer: async () => body,
   }

@@ -13,6 +13,7 @@ https://up.andyp.ai is a demo instance. Data there gets deleted periodically —
 - Upload files by drag-drop, paste, or CLI
 - Each upload gets a shareable link at `/c/:id`
 - Images render inline; other files get a download link
+- Direct file responses from `/api/file/:id` are always served as attachments
 - OpenGraph tags so links preview well when shared
 - Optional auth — public uploads or token-gated, your choice
 
@@ -144,6 +145,10 @@ curl -X PUT https://your-domain/api/upload \
 ```
 
 `fileUrl` is present only when the collection contains exactly one file.
+
+`/api/file/:id` always returns `Content-Disposition: attachment` (with
+`X-Content-Type-Options: nosniff`) so uploaded content is downloaded rather
+than executed in the app origin.
 
 ## Local development
 
