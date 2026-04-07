@@ -26,6 +26,7 @@
 ## Patterns That Work
 
 - Keep the product focused on fast anonymous sharing and developer ergonomics before richer preview/rendering features.
+- Keep inline preview URLs and forced-download URLs separate for shared artifacts; use an explicit `?download=1` attachment path instead of relying on the browser to infer download behavior from an inline asset URL.
 
 ## Patterns That Don't Work
 
