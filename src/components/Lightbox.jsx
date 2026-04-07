@@ -99,9 +99,7 @@ export default function Lightbox({ images, index, onClose, onNavigate }) {
           </span>
           <a
             href={current.downloadUrl}
-            download
-            target="_blank"
-            rel="noopener noreferrer"
+            download={current.name}
             className="flex items-center gap-1.5 text-xs text-text-muted hover:text-accent transition-colors"
             aria-label={`Download ${current.name}`}
           >

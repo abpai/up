@@ -49,15 +49,15 @@ describe('handleGetCollection', () => {
     const body = await response.json()
 
     expect(response.status).toBe(200)
-    expect(body.fileUrl).toBe('https://up.example.com/api/file/file-123')
+    expect(body.fileUrl).toBe('/api/file/file-123')
     expect(body.files).toEqual([
       {
         id: 'file-123',
         name: 'image.png',
         type: 'image/png',
         size: 173056,
-        url: 'https://up.example.com/api/file/file-123',
-        downloadUrl: 'https://up.example.com/api/file/file-123?download=1',
+        url: '/api/file/file-123',
+        downloadUrl: '/api/file/file-123?download=1',
       },
     ])
   })

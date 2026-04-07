@@ -1,16 +1,31 @@
 import { corsHeaders } from '../utils/cors'
 import { getBearerToken } from '../utils/cookie'
 
-function getAllowedOrigins(request, env) {
+function isLoopbackHost(hostname) {
+  return (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '::1' ||
+    hostname === '[::1]'
+  )
+}
+
+function isLoopbackOrigin(origin) {
+  if (!origin) return false
+
+  try {
+    return isLoopbackHost(new URL(origin).hostname)
+  } catch {
+    return false
+  }
+}
+
+function getAllowedOrigins(requestUrl, env) {
   const origins = new Set()
-  const requestUrl = new URL(request.url)
 
   origins.add(requestUrl.origin)
 
-  if (
-    requestUrl.hostname === 'localhost' ||
-    requestUrl.hostname === '127.0.0.1'
-  ) {
+  if (isLoopbackHost(requestUrl.hostname)) {
     origins.add('http://localhost:5173')
     origins.add('http://127.0.0.1:5173')
   }
@@ -37,9 +52,14 @@ export const withTrustedOrigin =
     }
 
     const origin = request.headers.get('Origin')
-    const allowedOrigins = getAllowedOrigins(request, env)
+    const requestUrl = new URL(request.url)
+    const isLocal = isLoopbackHost(requestUrl.hostname)
 
-    if (origin && allowedOrigins.has(origin)) {
+    if (isLocal && (!origin || isLoopbackOrigin(origin))) {
+      return handler(request, env, ctx)
+    }
+
+    if (origin && getAllowedOrigins(requestUrl, env).has(origin)) {
       return handler(request, env, ctx)
     }
 

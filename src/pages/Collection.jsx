@@ -85,8 +85,8 @@ export default function Collection() {
         <header className="max-w-5xl mx-auto mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link
-              to="/"
-              aria-label="Go back to home"
+              to="/dashboard"
+              aria-label="Go back to dashboard"
               className="p-2.5 rounded-full bg-surface-raised border border-surface-border hover:border-accent transition-colors duration-300"
             >
               <ArrowLeft
@@ -176,9 +176,7 @@ export default function Collection() {
                     </div>
                     <a
                       href={file.downloadUrl}
-                      download
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      download={file.name}
                       onClick={(e) => e.stopPropagation()}
                       className="p-2 rounded-full bg-white/10 text-text-secondary hover:text-accent transition-colors"
                       aria-label={`Download ${file.name}`}
@@ -219,9 +217,7 @@ export default function Collection() {
                 </div>
                 <a
                   href={file.downloadUrl}
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  download={file.name}
                   className="p-2 text-text-muted hover:text-accent transition-colors duration-300"
                   aria-label={`Download ${file.name}`}
                 >
