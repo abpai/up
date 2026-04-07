@@ -25,6 +25,7 @@ function createManifest(request, collectionId, title, files) {
     type: file.type,
     size: file.size,
     url: `${origin}/api/file/${file.id}`,
+    downloadUrl: `${origin}/api/file/${file.id}?download=1`,
   }))
   const manifest = {
     id: collectionId,

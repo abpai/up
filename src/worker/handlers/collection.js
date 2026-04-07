@@ -33,6 +33,7 @@ export const handleGetCollection = async (request, env) => {
       type: f.type,
       size: f.size,
       url: `${origin}/api/file/${f.id}`,
+      downloadUrl: `${origin}/api/file/${f.id}?download=1`,
     }))
 
     const responseData = {

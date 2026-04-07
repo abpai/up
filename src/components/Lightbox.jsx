@@ -98,7 +98,7 @@ export default function Lightbox({ images, index, onClose, onNavigate }) {
             {current.name}
           </span>
           <a
-            href={current.url}
+            href={current.downloadUrl}
             download
             target="_blank"
             rel="noopener noreferrer"
@@ -119,6 +119,7 @@ Lightbox.propTypes = {
   images: PropTypes.arrayOf(
     PropTypes.shape({
       url: PropTypes.string.isRequired,
+      downloadUrl: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
     }),
   ).isRequired,

@@ -1,10 +1,26 @@
 import { getDB } from '../services/db'
 import { corsHeaders } from '../utils/cors'
 
-function toAttachment(filename) {
-  const fallback = (filename || 'download').replace(/["\\\r\n]/g, '_')
-  const encoded = encodeURIComponent(filename || fallback)
-  return `attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`
+function encodeContentDispositionFilename(filename) {
+  return encodeURIComponent(filename).replace(
+    /['()*]/g,
+    (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
+  )
+}
+
+function buildContentDisposition(disposition, filename) {
+  const safeFilename = (filename || 'download').replace(/[\r\n"\\]/g, '_')
+  const encodedFilename = encodeContentDispositionFilename(
+    filename || safeFilename,
+  )
+
+  return `${disposition}; filename="${safeFilename}"; filename*=UTF-8''${encodedFilename}`
+}
+
+function getDisposition(request, fileRecord) {
+  const { searchParams } = new URL(request.url)
+  if (searchParams.get('download') === '1') return 'attachment'
+  return fileRecord.type?.startsWith('image/') ? 'inline' : 'attachment'
 }
 
 export const handleGetFile = async (request, env) => {
@@ -39,8 +55,13 @@ export const handleGetFile = async (request, env) => {
     object.writeHttpMetadata(headers)
     headers.set('etag', object.httpEtag)
 
-    // Force download with correct filename
-    headers.set('Content-Disposition', toAttachment(fileRecord.name))
+    headers.set(
+      'Content-Disposition',
+      buildContentDisposition(
+        getDisposition(request, fileRecord),
+        fileRecord.name,
+      ),
+    )
     headers.set('X-Content-Type-Options', 'nosniff')
 
     // CORS

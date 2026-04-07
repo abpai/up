@@ -175,7 +175,7 @@ export default function Collection() {
                       </p>
                     </div>
                     <a
-                      href={file.url}
+                      href={file.downloadUrl}
                       download
                       target="_blank"
                       rel="noopener noreferrer"
@@ -218,7 +218,7 @@ export default function Collection() {
                   </p>
                 </div>
                 <a
-                  href={file.url}
+                  href={file.downloadUrl}
                   download
                   target="_blank"
                   rel="noopener noreferrer"
