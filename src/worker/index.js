@@ -1,10 +1,17 @@
 import { Router } from 'itty-router'
 import { handleUpload } from './handlers/upload'
-import { handleGetCollection } from './handlers/collection'
+import {
+  handleGetCollection,
+  handleRenameCollection,
+} from './handlers/collection'
 import { handleGetDashboard } from './handlers/dashboard'
 import { handleRender } from './handlers/render'
 import { handleStatic } from './handlers/static'
-import { handleGetFile, handleRenameFile } from './handlers/file'
+import {
+  handleGetFile,
+  handleRenameFile,
+  handleDeleteFile,
+} from './handlers/file'
 import {
   handleSignup,
   handleLogin,
@@ -15,6 +22,7 @@ import {
   handleRevokeToken,
 } from './handlers/auth'
 import { withAuth } from './middleware/withAuth'
+import { withOptionalAuth } from './middleware/withOptionalAuth'
 import { withTrustedOrigin } from './middleware/withTrustedOrigin'
 import { ensureSchema } from './services/schema'
 import { corsHeaders } from './utils/cors'
@@ -49,11 +57,21 @@ router.patch(
   '/api/file/:id/rename',
   withTrustedOrigin(withAuth(handleRenameFile), { allowBearer: true }),
 )
+router.patch(
+  '/api/collection/:id/rename',
+  withTrustedOrigin(withAuth(handleRenameCollection), { allowBearer: true }),
+)
 router.get('/api/dashboard', withAuth(handleGetDashboard))
 
 // Public Routes
-router.get('/api/collection/:id', handleGetCollection)
+router.get('/api/collection/:id', withOptionalAuth(handleGetCollection))
 router.get('/api/file/:id', handleGetFile)
+
+// Protected File Operations
+router.delete(
+  '/api/file/:id',
+  withTrustedOrigin(withAuth(handleDeleteFile), { allowBearer: true }),
+)
 
 // Page Routes (Edge Rendering)
 router.get('/c/:id', handleRender)

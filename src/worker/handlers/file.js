@@ -82,14 +82,59 @@ export const handleGetFile = async (request, env) => {
   }
 }
 
+export const handleDeleteFile = async (request, env) => {
+  const { id } = request.params
+  const db = getDB(env)
+
+  try {
+    const fileRecord = await db
+      .prepare(
+        `SELECT id, r2_key FROM files
+         WHERE id = ?
+           AND collection_id IN (
+             SELECT id FROM collections WHERE user_id = ?
+           )`,
+      )
+      .bind(id, request.user.id)
+      .first()
+
+    if (!fileRecord) {
+      return new Response('File not found', {
+        status: 404,
+        headers: corsHeaders(env),
+      })
+    }
+
+    await db.prepare('DELETE FROM files WHERE id = ?').bind(id).run()
+
+    try {
+      await env.BUCKET.delete(fileRecord.r2_key)
+    } catch (e) {
+      console.error('R2 delete failed:', e)
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders(env) },
+    })
+  } catch (error) {
+    console.error('Error deleting file:', error)
+    return new Response('Error deleting file', {
+      status: 500,
+      headers: corsHeaders(env),
+    })
+  }
+}
+
 export const handleRenameFile = async (request, env) => {
   const { id } = request.params
   const db = getDB(env)
 
   try {
-    const { name } = await request.json()
+    const { name: rawName } = await request.json()
+    const name = typeof rawName === 'string' ? rawName.trim() : ''
 
-    if (!name || typeof name !== 'string') {
+    if (!name) {
       return new Response('Invalid name', {
         status: 400,
         headers: corsHeaders(env),
