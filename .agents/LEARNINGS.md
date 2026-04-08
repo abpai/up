@@ -19,6 +19,7 @@
 | 2026-03-29 | self | Running a newer local `pnpm` during validation bumped the root `packageManager` field unexpectedly | If the repo pins a specific `packageManager` version, restore that field unless you are intentionally upgrading tooling |
 | 2026-04-07 | self | `import/no-unresolved` falsely flagged local React component imports because ESLint's node resolver only considered `.js` | In this repo's `.eslintrc`, configure `settings.import/resolver.node.extensions` to include both `.js` and `.jsx` |
 | 2026-04-07 | self | Trusted-origin checks in dev were too narrow because they hard-coded Vite on port `5173` | For local Worker requests, trust any loopback-origin frontend (`localhost`, `127.0.0.1`, IPv6 loopback) and allow missing `Origin` headers from local proxies |
+| 2026-04-08 | self | Added optional auth to `GET /api/collection/:id` without varying cached responses by all auth inputs | When a public response changes based on auth state, vary cache headers by every auth mechanism in play here, especially both `Cookie` and `Authorization` |
 
 ## User Preferences
 

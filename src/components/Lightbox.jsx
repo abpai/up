@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import { downloadFile } from '../utils/download'
 
 export default function Lightbox({ images, index, onClose, onNavigate }) {
   const current = images[index]
@@ -97,15 +98,15 @@ export default function Lightbox({ images, index, onClose, onNavigate }) {
           <span className="text-sm text-text-secondary font-body">
             {current.name}
           </span>
-          <a
-            href={current.downloadUrl}
-            download={current.name}
+          <button
+            type="button"
+            onClick={() => downloadFile(current.downloadUrl, current.name)}
             className="flex items-center gap-1.5 text-xs text-text-muted hover:text-accent transition-colors"
             aria-label={`Download ${current.name}`}
           >
             <Download className="w-3.5 h-3.5" />
             Download
-          </a>
+          </button>
         </motion.div>
       </motion.div>
     </AnimatePresence>,
