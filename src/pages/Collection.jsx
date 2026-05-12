@@ -3,7 +3,14 @@ import { useParams, Link } from 'react-router-dom'
 import axios from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Share2, Check, Download, Trash2 } from 'lucide-react'
+import {
+  ArrowLeft,
+  Share2,
+  Check,
+  Download,
+  Trash2,
+  ExternalLink,
+} from 'lucide-react'
 import PageTransition from '../components/PageTransition'
 import LoadingScreen from '../components/LoadingScreen'
 import FileTypeIcon from '../components/FileTypeIcon'
@@ -18,12 +25,32 @@ function formatSize(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
+const fileActionStyles = {
+  image: {
+    icon: 'w-3.5 h-3.5',
+    action:
+      'p-2 rounded-full bg-white/10 text-text-secondary hover:text-accent transition-colors',
+    copyBase: 'p-2 rounded-full bg-white/10 transition-colors',
+    copyIdle: 'text-text-secondary hover:text-accent',
+    delete:
+      'p-2 rounded-full bg-white/10 text-text-secondary hover:text-red-400 transition-colors',
+  },
+  list: {
+    icon: 'w-4 h-4',
+    action:
+      'p-2 text-text-muted hover:text-accent transition-colors duration-300',
+    copyBase: 'p-2 transition-colors duration-300',
+    copyIdle: 'text-text-muted hover:text-accent',
+    delete: 'p-2 text-text-muted hover:text-red-400 transition-colors duration-300',
+  },
+}
+
 export default function Collection() {
   const { id } = useParams()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [copied, setCopied] = useState(false)
+  const [copiedTarget, setCopiedTarget] = useState(null)
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const copiedTimerRef = useRef(null)
 
@@ -120,11 +147,11 @@ export default function Collection() {
     downloadFile(file.downloadUrl, file.name)
   }
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(window.location.href)
-    setCopied(true)
+  const copyLink = (url = window.location.href, target = 'collection') => {
+    navigator.clipboard.writeText(new URL(url, window.location.origin).href)
+    setCopiedTarget(target)
     clearTimeout(copiedTimerRef.current)
-    copiedTimerRef.current = setTimeout(() => setCopied(false), 2000)
+    copiedTimerRef.current = setTimeout(() => setCopiedTarget(null), 2000)
   }
 
   const closeDeleteModal = () => {
@@ -190,6 +217,71 @@ export default function Collection() {
     )
   }
 
+  const renderCopyIcon = (target, className) =>
+    copiedTarget === target ? (
+      <Check className={className} aria-hidden="true" />
+    ) : (
+      <Share2 className={className} aria-hidden="true" />
+    )
+
+  const collectionCopied = copiedTarget === 'collection'
+
+  const renderFileActions = (file, imageStyle = false) => {
+    const styles = imageStyle ? fileActionStyles.image : fileActionStyles.list
+    const copyClass = `${styles.copyBase} ${
+      copiedTarget === file.id ? 'text-accent' : styles.copyIdle
+    }`
+
+    return (
+      <div className="flex items-center gap-1">
+        <a
+          href={file.url}
+          target="_blank"
+          rel="noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className={styles.action}
+          aria-label={`Open ${file.name}`}
+          title={`Open ${file.name}`}
+        >
+          <ExternalLink className={styles.icon} aria-hidden="true" />
+        </a>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            copyLink(file.shareUrl || file.url, file.id)
+          }}
+          className={copyClass}
+          aria-label={`Copy raw link to ${file.name}`}
+          title={`Copy raw link to ${file.name}`}
+        >
+          {renderCopyIcon(file.id, styles.icon)}
+        </button>
+        <button
+          type="button"
+          onClick={(e) => handleDownload(e, file)}
+          className={styles.action}
+          aria-label={`Download ${file.name}`}
+        >
+          <Download className={styles.icon} aria-hidden="true" />
+        </button>
+        {data.isOwner && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              setDeleteTarget(file)
+            }}
+            className={styles.delete}
+            aria-label={`Delete ${file.name}`}
+          >
+            <Trash2 className={styles.icon} aria-hidden="true" />
+          </button>
+        )}
+      </div>
+    )
+  }
+
   return (
     <PageTransition>
       <div className="min-h-screen bg-surface text-text-primary p-4 md:p-12">
@@ -242,16 +334,16 @@ export default function Collection() {
             </div>
           </div>
           <button
-            onClick={copyLink}
-            aria-label={copied ? 'Link copied' : 'Copy share link'}
+            onClick={() => copyLink()}
+            aria-label={collectionCopied ? 'Link copied' : 'Copy share link'}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-full border text-sm font-body transition-all duration-300 active:scale-[0.97] ${
-              copied
+              collectionCopied
                 ? 'border-accent text-accent'
                 : 'border-surface-border text-text-secondary hover:border-accent hover:text-accent'
             }`}
           >
             <AnimatePresence mode="wait">
-              {copied ? (
+              {collectionCopied ? (
                 <motion.span
                   key="copied"
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -306,35 +398,7 @@ export default function Collection() {
                         {formatSize(file.size)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={(e) => handleDownload(e, file)}
-                        className="p-2 rounded-full bg-white/10 text-text-secondary hover:text-accent transition-colors"
-                        aria-label={`Download ${file.name}`}
-                      >
-                        <Download
-                          className="w-3.5 h-3.5"
-                          aria-hidden="true"
-                        />
-                      </button>
-                      {data.isOwner && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setDeleteTarget(file)
-                          }}
-                          className="p-2 rounded-full bg-white/10 text-text-secondary hover:text-red-400 transition-colors"
-                          aria-label={`Delete ${file.name}`}
-                        >
-                          <Trash2
-                            className="w-3.5 h-3.5"
-                            aria-hidden="true"
-                          />
-                        </button>
-                      )}
-                    </div>
+                    {renderFileActions(file, true)}
                   </div>
                 </div>
               </motion.div>
@@ -362,26 +426,7 @@ export default function Collection() {
                     {formatSize(file.size)}
                   </p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={(e) => handleDownload(e, file)}
-                    className="p-2 text-text-muted hover:text-accent transition-colors duration-300"
-                    aria-label={`Download ${file.name}`}
-                  >
-                    <Download className="w-4 h-4" aria-hidden="true" />
-                  </button>
-                  {data.isOwner && (
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget(file)}
-                      className="p-2 text-text-muted hover:text-red-400 transition-colors duration-300"
-                      aria-label={`Delete ${file.name}`}
-                    >
-                      <Trash2 className="w-4 h-4" aria-hidden="true" />
-                    </button>
-                  )}
-                </div>
+                {renderFileActions(file)}
               </motion.div>
             ))}
           </motion.section>
