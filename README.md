@@ -11,9 +11,9 @@ https://up.andyp.ai is a demo instance. Data there gets deleted periodically —
 ## What you get
 
 - Upload files by drag-drop, paste, or CLI
-- Each upload gets a shareable link at `/c/:id`
-- Images render inline; other files get a download link
-- Direct file responses from `/api/file/:id` are always served as attachments
+- Each upload gets a shareable collection link at `/c/:id`
+- Each file gets a raw browser-render link at `/f/:id`
+- Downloads still use `/api/file/:id?download=1`
 - OpenGraph tags so links preview well when shared
 - Optional auth — public uploads or token-gated, your choice
 
@@ -131,14 +131,16 @@ curl -X PUT https://your-domain/api/upload \
   "createdAt": 1710000000000,
   "count": 1,
   "shareUrl": "https://your-domain/c/collection-id",
-  "fileUrl": "https://your-domain/api/file/file-id",
+  "fileUrl": "https://your-domain/f/file-id",
   "files": [
     {
       "id": "file-id",
       "name": "doc.pdf",
       "type": "application/pdf",
       "size": 12345,
-      "url": "https://your-domain/api/file/file-id"
+      "url": "https://your-domain/f/file-id",
+      "shareUrl": "https://your-domain/f/file-id",
+      "downloadUrl": "https://your-domain/api/file/file-id?download=1"
     }
   ]
 }
@@ -146,9 +148,9 @@ curl -X PUT https://your-domain/api/upload \
 
 `fileUrl` is present only when the collection contains exactly one file.
 
-`/api/file/:id` always returns `Content-Disposition: attachment` (with
-`X-Content-Type-Options: nosniff`) so uploaded content is downloaded rather
-than executed in the app origin.
+`/f/:id` returns the uploaded file inline so browsers can render supported
+types such as images, PDFs, text, and HTML. `/api/file/:id?download=1` forces a
+download.
 
 ## Local development
 
