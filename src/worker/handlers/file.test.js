@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { handleGetFile, handleDeleteFile, handleRenameFile } from './file'
 
-function createEnv({ filename = 'image.png', type = 'image/png' } = {}) {
+function createEnv({
+  filename = 'image.png',
+  type = 'image/png',
+  objectType = type,
+} = {}) {
   return {
     CORS: '*',
     DB: {
@@ -25,7 +29,7 @@ function createEnv({ filename = 'image.png', type = 'image/png' } = {}) {
         body: 'file-body',
         httpEtag: '"etag-123"',
         writeHttpMetadata(headers) {
-          headers.set('Content-Type', type)
+          headers.set('Content-Type', objectType)
         },
       })),
     },
@@ -92,6 +96,39 @@ describe('handleGetFile', () => {
       'filename="evil_.html"',
     )
     expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff')
+  })
+
+  it('serves browser-render links inline with the database content type', async () => {
+    const env = createEnv({
+      filename: 'report.html',
+      type: 'text/html',
+      objectType: 'application/octet-stream',
+    })
+    const response = await handleGetFile(
+      createRequest('https://up.example.com/f/file-123'),
+      env,
+    )
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('Content-Type')).toBe('text/html')
+    expect(response.headers.get('Content-Disposition')).toContain('inline;')
+    expect(response.headers.get('Content-Security-Policy')).toBe(
+      'sandbox allow-scripts allow-popups allow-downloads',
+    )
+  })
+
+  it('keeps download=1 as an attachment on browser-render links', async () => {
+    const env = createEnv({
+      filename: 'doc.pdf',
+      type: 'application/pdf',
+    })
+    const response = await handleGetFile(
+      createRequest('https://up.example.com/f/file-123?download=1'),
+      env,
+    )
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('Content-Disposition')).toContain('attachment;')
   })
 })
 

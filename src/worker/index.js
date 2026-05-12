@@ -66,6 +66,7 @@ router.get('/api/dashboard', withAuth(handleGetDashboard))
 // Public Routes
 router.get('/api/collection/:id', withOptionalAuth(handleGetCollection))
 router.get('/api/file/:id', handleGetFile)
+router.get('/f/:id', handleGetFile)
 
 // Protected File Operations
 router.delete(

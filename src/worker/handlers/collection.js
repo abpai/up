@@ -71,7 +71,8 @@ export const handleGetCollection = async (request, env) => {
       name: f.name,
       type: f.type,
       size: f.size,
-      url: `/api/file/${f.id}`,
+      url: `/f/${f.id}`,
+      shareUrl: `/f/${f.id}`,
       downloadUrl: `/api/file/${f.id}?download=1`,
     }))
 

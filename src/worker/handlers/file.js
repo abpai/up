@@ -1,6 +1,9 @@
 import { getDB } from '../services/db'
 import { corsHeaders } from '../utils/cors'
 
+const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
+const HTML_RENDER_SANDBOX = 'sandbox allow-scripts allow-popups allow-downloads'
+
 function encodeContentDispositionFilename(filename) {
   return encodeURIComponent(filename).replace(
     /['()*]/g,
@@ -17,9 +20,41 @@ function buildContentDisposition(disposition, filename) {
   return `${disposition}; filename="${safeFilename}"; filename*=UTF-8''${encodedFilename}`
 }
 
+function isInlineRenderRequest(request) {
+  const { pathname, searchParams } = new URL(request.url)
+  return pathname.startsWith('/f/') || searchParams.get('inline') === '1'
+}
+
+function normalizeContentType(contentType) {
+  return contentType?.split(';')[0].trim().toLowerCase() || ''
+}
+
+function getResponseContentType(headers, fileRecord) {
+  const objectContentType = headers.get('Content-Type')
+
+  if (
+    !objectContentType ||
+    normalizeContentType(objectContentType) === DEFAULT_CONTENT_TYPE
+  ) {
+    return fileRecord.type || DEFAULT_CONTENT_TYPE
+  }
+
+  return objectContentType
+}
+
+function shouldSandboxRenderedContent(contentType) {
+  const normalized = normalizeContentType(contentType)
+  return (
+    normalized === 'text/html' ||
+    normalized === 'application/xhtml+xml' ||
+    normalized === 'image/svg+xml'
+  )
+}
+
 function getDisposition(request, fileRecord) {
   const { searchParams } = new URL(request.url)
   if (searchParams.get('download') === '1') return 'attachment'
+  if (isInlineRenderRequest(request)) return 'inline'
   return fileRecord.type?.startsWith('image/') ? 'inline' : 'attachment'
 }
 
@@ -53,6 +88,8 @@ export const handleGetFile = async (request, env) => {
 
     const headers = new Headers()
     object.writeHttpMetadata(headers)
+    const contentType = getResponseContentType(headers, fileRecord)
+    headers.set('Content-Type', contentType)
     headers.set('etag', object.httpEtag)
 
     headers.set(
@@ -63,6 +100,12 @@ export const handleGetFile = async (request, env) => {
       ),
     )
     headers.set('X-Content-Type-Options', 'nosniff')
+    if (
+      isInlineRenderRequest(request) &&
+      shouldSandboxRenderedContent(contentType)
+    ) {
+      headers.set('Content-Security-Policy', HTML_RENDER_SANDBOX)
+    }
 
     // CORS
     const cors = corsHeaders(env)

@@ -24,7 +24,8 @@ function createManifest(request, collectionId, title, files) {
     name: file.name,
     type: file.type,
     size: file.size,
-    url: `${origin}/api/file/${file.id}`,
+    url: `${origin}/f/${file.id}`,
+    shareUrl: `${origin}/f/${file.id}`,
     downloadUrl: `${origin}/api/file/${file.id}?download=1`,
   }))
   const manifest = {
@@ -70,7 +71,7 @@ async function persistUpload(request, env, inputFiles, titleOverride) {
 
       await env.BUCKET.put(key, await file.arrayBuffer(), {
         httpMetadata: {
-          contentType: DEFAULT_CONTENT_TYPE,
+          contentType: file.type || DEFAULT_CONTENT_TYPE,
         },
       })
 

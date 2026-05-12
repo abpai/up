@@ -32,7 +32,7 @@ export const handleRender = async (request, env) => {
 
     if (collection) {
       const { origin } = new URL(request.url)
-      const imageUrl = imageFile ? `${origin}/api/file/${imageFile.id}` : ''
+      const imageUrl = imageFile ? `${origin}/f/${imageFile.id}` : ''
 
       manifest = {
         title: collection.title,
@@ -47,11 +47,9 @@ export const handleRender = async (request, env) => {
   // 2. Fetch index.html from assets
   let response
   try {
-    const indexRequest = new Request(
-      new URL('/index.html', request.url),
-      request,
+    response = await env.ASSETS.fetch(
+      new Request(new URL('/', request.url), { method: 'GET' }),
     )
-    response = await env.ASSETS.fetch(indexRequest)
   } catch (e) {
     return new Response('Error loading application', { status: 500 })
   }

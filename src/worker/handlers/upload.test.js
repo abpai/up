@@ -41,16 +41,17 @@ describe('handleUpload', () => {
 
     expect(response.status).toBe(200)
     expect(body.shareUrl).toMatch(/^https:\/\/up\.example\.com\/c\//)
-    expect(body.fileUrl).toMatch(/^https:\/\/up\.example\.com\/api\/file\//)
+    expect(body.fileUrl).toMatch(/^https:\/\/up\.example\.com\/f\//)
     expect(body.files).toHaveLength(1)
     expect(body.files[0].name).toBe('hello.txt')
+    expect(body.files[0].shareUrl).toMatch(/^https:\/\/up\.example\.com\/f\//)
     expect(body.files[0].downloadUrl).toMatch(
       /^https:\/\/up\.example\.com\/api\/file\/.+\?download=1$/,
     )
     expect(env.BUCKET.put).toHaveBeenCalledTimes(1)
     expect(env.BUCKET.put.mock.calls[0][2]).toEqual({
       httpMetadata: {
-        contentType: 'application/octet-stream',
+        contentType: 'text/plain',
       },
     })
   })
@@ -84,6 +85,7 @@ describe('handleUpload', () => {
     expect(body.fileUrl).toBeUndefined()
     expect(body.files).toHaveLength(2)
     body.files.forEach((file) => {
+      expect(file.shareUrl).toMatch(/^https:\/\/up\.example\.com\/f\//)
       expect(file.downloadUrl).toMatch(
         /^https:\/\/up\.example\.com\/api\/file\/.+\?download=1$/,
       )

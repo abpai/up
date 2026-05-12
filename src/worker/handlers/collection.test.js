@@ -39,7 +39,7 @@ function createEnv({ userId = null } = {}) {
 }
 
 describe('handleGetCollection', () => {
-  it('includes a forced-download URL for each file', async () => {
+  it('includes browser-render and forced-download URLs for each file', async () => {
     const env = createEnv()
     const request = {
       url: 'https://up.example.com/api/collection/collection-123',
@@ -50,14 +50,15 @@ describe('handleGetCollection', () => {
     const body = await response.json()
 
     expect(response.status).toBe(200)
-    expect(body.fileUrl).toBe('/api/file/file-123')
+    expect(body.fileUrl).toBe('/f/file-123')
     expect(body.files).toEqual([
       {
         id: 'file-123',
         name: 'image.png',
         type: 'image/png',
         size: 173056,
-        url: '/api/file/file-123',
+        url: '/f/file-123',
+        shareUrl: '/f/file-123',
         downloadUrl: '/api/file/file-123?download=1',
       },
     ])
