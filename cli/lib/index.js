@@ -1,13 +1,18 @@
 import { Command } from 'commander'
+import { createRequire } from 'node:module'
 import open from 'open'
 import { loadGlobalConfig, resolveRuntimeConfig } from './config.js'
 import { runSetup } from './setup.js'
 import { uploadCollection, uploadSingleFile } from './upload.js'
 
+const require = createRequire(import.meta.url)
+const { version } = require('../package.json')
+
 function createProgram() {
   return new Command()
     .name('up')
     .description('Upload local files to Up and get public share links')
+    .version(version)
     .argument('[paths...]', 'Local file paths to upload')
     .option('--api <url>', 'API base URL')
     .option('--app <url>', 'App base URL')
@@ -18,6 +23,39 @@ function createProgram() {
     .option('--no-open', 'Do not open the share URL in the browser')
     .option('--config', 'Print the resolved config and exit')
     .exitOverride()
+}
+
+function createSetupProgram() {
+  return new Command()
+    .name('up setup')
+    .description('Configure Up CLI defaults')
+    .option('--api <url>', 'API base URL')
+    .option('--app <url>', 'App base URL')
+    .option('--token <token>', 'API token to save')
+    .option('--mode <mode>', 'Default upload mode: single|collection')
+    .option('--open', 'Open the share URL in the browser by default')
+    .option('--no-open', 'Do not open the share URL in the browser by default')
+    .option('--yes', 'Write config without prompting')
+    .exitOverride()
+}
+
+function isExpectedCommanderExit(error) {
+  return (
+    error &&
+    typeof error === 'object' &&
+    (error.code === 'commander.helpDisplayed' ||
+      error.code === 'commander.version')
+  )
+}
+
+function parseProgram(program, args) {
+  try {
+    program.parse(args, { from: 'user' })
+    return true
+  } catch (error) {
+    if (isExpectedCommanderExit(error)) return false
+    throw error
+  }
 }
 
 function redactConfig(config) {
@@ -33,6 +71,21 @@ function getCliOpenBrowserValue(program, options) {
     : undefined
 }
 
+function parseSetupOptions(args) {
+  const program = createSetupProgram()
+  if (!parseProgram(program, args)) return null
+  const options = program.opts()
+
+  return {
+    apiUrl: options.api,
+    appUrl: options.app,
+    apiToken: options.token,
+    defaultMode: options.mode,
+    openBrowser: getCliOpenBrowserValue(program, options),
+    yes: options.yes,
+  }
+}
+
 function resolveUploadMode(options, paths, runtimeConfig) {
   if (options.collection || paths.length > 1) {
     return 'collection'
@@ -43,7 +96,9 @@ function resolveUploadMode(options, paths, runtimeConfig) {
 
 export async function run(args, deps = {}) {
   if (args[0] === 'setup') {
-    await runSetup()
+    const setupOptions = parseSetupOptions(args.slice(1))
+    if (!setupOptions) return
+    await runSetup(setupOptions)
     return
   }
 
@@ -53,7 +108,7 @@ export async function run(args, deps = {}) {
   }
 
   const program = createProgram()
-  program.parse(args, { from: 'user' })
+  if (!parseProgram(program, args)) return
   const options = program.opts()
   const paths = program.args
 

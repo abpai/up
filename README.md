@@ -83,10 +83,16 @@ Add a route or custom domain in Cloudflare, then update `[vars].CORS` in `wrangl
 The `up` CLI lives in [`cli/`](./cli).
 
 ```bash
+npm install -g @andypai/up
+up setup
+```
+
+```bash
 up file.pdf                        # upload and get a link
 up --collection a.png b.png        # group files into one link
 up --json file.pdf                 # print full response JSON
 up setup                           # configure token and defaults
+up setup --token "$UP_TOKEN" --yes # configure token in headless shells
 ```
 
 Config is saved to `~/.up/config.toml`:

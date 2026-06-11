@@ -139,7 +139,9 @@ export async function writeGlobalConfig(
     default_mode: config.defaultMode,
     ...(config.apiToken ? { api_token: config.apiToken } : {}),
   })
-  await fs.writeFile(configPath, payload, 'utf8')
+  // `mode` protects first-time writes; chmod also repairs existing files.
+  await fs.writeFile(configPath, payload, { encoding: 'utf8', mode: 0o600 })
+  await fs.chmod(configPath, 0o600)
 }
 
 export function resolveRuntimeConfig({

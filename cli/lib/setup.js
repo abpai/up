@@ -19,7 +19,9 @@ const SETUP_CANCELED = 'Setup canceled.'
 
 function ensureInteractiveTerminal() {
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
-    throw new Error('Interactive setup requires a TTY.')
+    throw new Error(
+      'Interactive setup requires a TTY. For headless setup, run `up setup --token "$UP_TOKEN" --yes`.',
+    )
   }
 }
 
@@ -65,14 +67,73 @@ async function promptForApiToken(prompts) {
   ).trim()
 }
 
+function validateRequiredString(value, label) {
+  if (value === undefined) return undefined
+
+  const trimmed = String(value).trim()
+  if (!trimmed) {
+    throw new Error(`${label} must be a non-empty string.`)
+  }
+
+  return trimmed
+}
+
+function validateApiToken(value) {
+  const trimmed = validateRequiredString(value, 'API token')
+  if (trimmed === undefined) return undefined
+
+  if (!trimmed.startsWith('up_')) {
+    throw new Error('API token should start with "up_".')
+  }
+
+  return trimmed
+}
+
+function validateDefaultMode(value) {
+  if (value === undefined) return undefined
+  if (value === 'single' || value === 'collection') return value
+  throw new Error('Default upload mode must be "single" or "collection".')
+}
+
+function applySetupOptions(config, options) {
+  const next = { ...config }
+  const apiUrl = validateRequiredString(options.apiUrl, 'API base URL')
+  const appUrl = validateRequiredString(options.appUrl, 'App base URL')
+  const defaultMode = validateDefaultMode(options.defaultMode)
+  const apiToken = validateApiToken(options.apiToken)
+
+  if (apiUrl !== undefined) next.apiUrl = apiUrl
+  if (appUrl !== undefined) next.appUrl = appUrl
+  if (options.openBrowser !== undefined) {
+    next.openBrowser = Boolean(options.openBrowser)
+  }
+  if (defaultMode !== undefined) next.defaultMode = defaultMode
+  if (apiToken !== undefined) next.apiToken = apiToken
+
+  return next
+}
+
 export async function runSetup(
   options = {},
   prompts = { confirm, intro, outro, password, select, text },
 ) {
-  ensureInteractiveTerminal()
-
   const configPath = options.configPath ?? getGlobalConfigPath()
   const existing = await loadGlobalConfig(configPath)
+  const current = { ...DEFAULT_CONFIG, ...existing.config }
+
+  if (options.yes) {
+    const configured = applySetupOptions(current, options)
+
+    for (const warning of existing.warnings) {
+      console.warn(`[up] ${warning}`)
+    }
+
+    await writeGlobalConfig(configured, configPath)
+    console.info(`Saved config to ${configPath}`)
+    return
+  }
+
+  ensureInteractiveTerminal()
 
   prompts.intro('up setup')
   console.info(`Up will save your defaults to ${configPath}.`)
@@ -80,8 +141,6 @@ export async function runSetup(
   for (const warning of existing.warnings) {
     console.warn(`[up] ${warning}`)
   }
-
-  const current = { ...DEFAULT_CONFIG, ...existing.config }
 
   const apiUrl = await promptForRequiredText(
     prompts,
