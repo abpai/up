@@ -2,6 +2,13 @@
 
 CLI for uploading local files to Up and getting back public share links.
 
+## Install
+
+```bash
+npm install -g @andypai/up
+up --version
+```
+
 ## Usage
 
 ```bash
@@ -19,6 +26,13 @@ The easiest way to create them is:
 
 ```bash
 up setup
+```
+
+For headless terminals, CI, or dotfile automation:
+
+```bash
+up setup --token "$UP_TOKEN" --yes
+up setup --api https://up.example.com --app https://up.example.com --token "$UP_TOKEN" --no-open --mode single --yes
 ```
 
 For local authenticated uploads, create an API token in the Up dashboard and
