@@ -107,6 +107,17 @@ api_token = "up_your_token"
 
 Token precedence: `UP_TOKEN` env var > `~/.up/config.toml`.
 
+### Releasing
+
+The `@andypai/up` package is published automatically with
+[Changesets](https://github.com/changesets/changesets). To ship a change:
+
+1. Run `pnpm changeset` and describe the change (pick a semver bump).
+2. Commit the generated file in `.changeset/` with your PR.
+3. On merge to `main`, the `Release` workflow opens a "chore: version
+   packages" PR. Merging that PR bumps the version, updates the changelog,
+   and publishes to npm.
+
 ## API
 
 ### Multipart upload
