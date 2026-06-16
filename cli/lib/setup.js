@@ -10,12 +10,15 @@ import {
 } from '@clack/prompts'
 import {
   DEFAULT_CONFIG,
+  UPLOAD_MODES,
   getGlobalConfigPath,
   loadGlobalConfig,
   writeGlobalConfig,
 } from './config.js'
 
 const SETUP_CANCELED = 'Setup canceled.'
+const API_TOKEN_PREFIX = 'up_'
+const API_TOKEN_PREFIX_MESSAGE = `API token should start with "${API_TOKEN_PREFIX}".`
 
 function ensureInteractiveTerminal() {
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
@@ -57,8 +60,8 @@ async function promptForApiToken(prompts) {
         validate: (value) => {
           const trimmed = String(value || '').trim()
           if (!trimmed) return 'API token is required.'
-          if (!trimmed.startsWith('up_')) {
-            return 'API tokens should start with "up_".'
+          if (!trimmed.startsWith(API_TOKEN_PREFIX)) {
+            return API_TOKEN_PREFIX_MESSAGE
           }
           return undefined
         },
@@ -82,8 +85,8 @@ function validateApiToken(value) {
   const trimmed = validateRequiredString(value, 'API token')
   if (trimmed === undefined) return undefined
 
-  if (!trimmed.startsWith('up_')) {
-    throw new Error('API token should start with "up_".')
+  if (!trimmed.startsWith(API_TOKEN_PREFIX)) {
+    throw new Error(API_TOKEN_PREFIX_MESSAGE)
   }
 
   return trimmed
@@ -91,7 +94,7 @@ function validateApiToken(value) {
 
 function validateDefaultMode(value) {
   if (value === undefined) return undefined
-  if (value === 'single' || value === 'collection') return value
+  if (UPLOAD_MODES.includes(value)) return value
   throw new Error('Default upload mode must be "single" or "collection".')
 }
 
@@ -119,16 +122,19 @@ export async function runSetup(
 ) {
   const configPath = options.configPath ?? getGlobalConfigPath()
   const existing = await loadGlobalConfig(configPath)
-  const current = { ...DEFAULT_CONFIG, ...existing.config }
+  // Validate any provided flags up front and fold them onto the saved config,
+  // so they seed both the headless write and the interactive prompts below.
+  const current = applySetupOptions(
+    { ...DEFAULT_CONFIG, ...existing.config },
+    options,
+  )
 
   if (options.yes) {
-    const configured = applySetupOptions(current, options)
-
     for (const warning of existing.warnings) {
       console.warn(`[up] ${warning}`)
     }
 
-    await writeGlobalConfig(configured, configPath)
+    await writeGlobalConfig(current, configPath)
     console.info(`Saved config to ${configPath}`)
     return
   }
@@ -176,13 +182,16 @@ export async function runSetup(
   )
 
   let apiToken = current.apiToken ?? null
+  // A token passed via --token already seeds current.apiToken, so default the
+  // prompt to keeping it rather than asking the user to paste it again.
+  const tokenProvided = options.apiToken !== undefined
   const shouldUpdateToken = Boolean(
     throwIfCanceled(
       await prompts.confirm({
         message: current.apiToken
           ? 'Update the saved API token for authenticated CLI uploads?'
           : 'Save an API token for authenticated CLI uploads?',
-        initialValue: Boolean(current.apiToken),
+        initialValue: tokenProvided ? false : Boolean(current.apiToken),
       }),
     ),
   )

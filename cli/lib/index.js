@@ -8,17 +8,23 @@ import { uploadCollection, uploadSingleFile } from './upload.js'
 const require = createRequire(import.meta.url)
 const { version } = require('../package.json')
 
-function createProgram() {
-  return new Command()
-    .name('up')
-    .description('Upload local files to Up and get public share links')
-    .version(version)
-    .argument('[paths...]', 'Local file paths to upload')
+function withSharedOptions(command) {
+  return command
     .option('--api <url>', 'API base URL')
     .option('--app <url>', 'App base URL')
+    .option('--mode <mode>', 'Default upload mode: single|collection')
+}
+
+function createProgram() {
+  return withSharedOptions(
+    new Command()
+      .name('up')
+      .description('Upload local files to Up and get public share links')
+      .version(version)
+      .argument('[paths...]', 'Local file paths to upload'),
+  )
     .option('--json', 'Print the full response JSON')
     .option('--collection', 'Upload all provided paths as one collection')
-    .option('--mode <mode>', 'Default upload mode: single|collection')
     .option('--open', 'Open the share URL in the browser')
     .option('--no-open', 'Do not open the share URL in the browser')
     .option('--config', 'Print the resolved config and exit')
@@ -26,13 +32,10 @@ function createProgram() {
 }
 
 function createSetupProgram() {
-  return new Command()
-    .name('up setup')
-    .description('Configure Up CLI defaults')
-    .option('--api <url>', 'API base URL')
-    .option('--app <url>', 'App base URL')
+  return withSharedOptions(
+    new Command().name('up setup').description('Configure Up CLI defaults'),
+  )
     .option('--token <token>', 'API token to save')
-    .option('--mode <mode>', 'Default upload mode: single|collection')
     .option('--open', 'Open the share URL in the browser by default')
     .option('--no-open', 'Do not open the share URL in the browser by default')
     .option('--yes', 'Write config without prompting')
@@ -102,15 +105,15 @@ export async function run(args, deps = {}) {
     return
   }
 
-  const globalConfig = await loadGlobalConfig()
-  for (const warning of globalConfig.warnings) {
-    console.warn(`[up] ${warning}`)
-  }
-
   const program = createProgram()
   if (!parseProgram(program, args)) return
   const options = program.opts()
   const paths = program.args
+
+  const globalConfig = await loadGlobalConfig()
+  for (const warning of globalConfig.warnings) {
+    console.warn(`[up] ${warning}`)
+  }
 
   const runtimeConfig = resolveRuntimeConfig({
     cli: {

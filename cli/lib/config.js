@@ -5,6 +5,8 @@ import { parse, stringify } from '@iarna/toml'
 
 export const DEFAULT_BASE_URL = 'https://up.andyp.ai'
 
+export const UPLOAD_MODES = ['single', 'collection']
+
 export const DEFAULT_CONFIG = {
   apiUrl: DEFAULT_BASE_URL,
   appUrl: DEFAULT_BASE_URL,
@@ -41,7 +43,7 @@ function validateBoolean(value, label, warnings) {
 }
 
 function validateMode(value, label, warnings) {
-  if (value === 'single' || value === 'collection') return value
+  if (UPLOAD_MODES.includes(value)) return value
   warnings.push(`${label} must be "single" or "collection".`)
   return undefined
 }

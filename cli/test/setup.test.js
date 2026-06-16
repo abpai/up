@@ -85,30 +85,69 @@ test('rejects invalid non-interactive token', async () => {
   )
 })
 
-test('does not validate non-interactive options before prompting', async () => {
+test('seeds interactive prompts from provided flags', async () => {
   enableTty()
   const dir = await mkdtemp(join(tmpdir(), 'up-setup-'))
   const configPath = join(dir, 'config.toml')
+  const seen = {}
   const prompts = {
     intro() {},
     outro() {},
-    confirm: async ({ message }) => {
+    confirm: async ({ message, initialValue }) => {
       if (message.includes('Open browser')) return true
-      if (message.includes('API token')) return false
+      if (message.includes('API token')) {
+        // Provided token defaults the update prompt to "keep" (false).
+        seen.tokenInitial = initialValue
+        return false
+      }
       return true
     },
     password: async () => {
       throw new Error('password prompt should not run')
     },
-    select: async () => 'single',
-    text: async ({ message }) =>
-      message.includes('API')
-        ? 'https://api.example.com'
-        : 'https://app.example.com',
+    select: async ({ initialValue }) => {
+      seen.modeInitial = initialValue
+      return initialValue
+    },
+    text: async ({ message, initialValue }) => initialValue || message,
   }
 
-  await runSetup({ apiToken: 'invalid_token', configPath }, prompts)
+  await runSetup(
+    {
+      apiToken: 'up_flag_token',
+      apiUrl: 'https://api.example.com',
+      appUrl: 'https://app.example.com',
+      defaultMode: 'collection',
+      configPath,
+    },
+    prompts,
+  )
   const written = await readFile(configPath, 'utf8')
 
-  assert.doesNotMatch(written, /api_token/)
+  assert.equal(seen.tokenInitial, false)
+  assert.equal(seen.modeInitial, 'collection')
+  assert.match(written, /api_url = "https:\/\/api\.example\.com"/)
+  assert.match(written, /default_mode = "collection"/)
+  assert.match(written, /api_token = "up_flag_token"/)
+})
+
+test('rejects invalid flags before prompting interactively', async () => {
+  enableTty()
+  const dir = await mkdtemp(join(tmpdir(), 'up-setup-'))
+  const configPath = join(dir, 'config.toml')
+  const prompts = {
+    intro() {
+      throw new Error('prompts should not start with invalid flags')
+    },
+    outro() {},
+    confirm: async () => true,
+    password: async () => 'up_token',
+    select: async () => 'single',
+    text: async () => 'https://api.example.com',
+  }
+
+  await assert.rejects(
+    runSetup({ apiToken: 'invalid_token', configPath }, prompts),
+    /API token should start with "up_"/,
+  )
 })
